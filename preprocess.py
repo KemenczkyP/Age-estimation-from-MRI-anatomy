@@ -47,7 +47,7 @@ class preprocess_():
                 if bigger, random generate a number, if it is bigger than split_TRAIN_VALID, volume goes to VALID, if not volume goes to TRAIN
         '''
         
-        self.var_MRI_volume_size = [79,95,79];
+        self.var_MRI_volume_size = MRI_volume_size;
         
         self.val_TARGET_DIR_NPY = TARGET_DIR_NPY;
         self._check_dir_existence_(self.val_TARGET_DIR_NPY)
