@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Apr  1 08:51:55 2019
+
+@author: KemyPeti
+"""
+
+
 class manip():
     @staticmethod
     #-------------------------------------------------------------------------#

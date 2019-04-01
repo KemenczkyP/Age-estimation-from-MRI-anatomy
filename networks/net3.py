@@ -2,7 +2,7 @@
 """
 Created on Wed Jan  9 09:32:54 2019
 
-@author: latlab
+@author: KemyPeti
 """
 def net(input_layer, sex, num_class, drop_out_rate=0, training = 1):
     import tensorflow as tf
