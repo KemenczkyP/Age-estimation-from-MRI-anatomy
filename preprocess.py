@@ -294,7 +294,7 @@ class preprocess_():
         else:
             raise ValueError('The encoded data length is not sufficient')
             
-    def _int64_feature(self, value):
+    def __int64_feature(self, value):
       """Wrapper for inserting int64 features into Example proto."""
       if not isinstance(value, list):
         value = [value]
