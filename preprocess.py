@@ -50,21 +50,21 @@ class preprocess_():
         self.var_MRI_volume_size = MRI_volume_size;
         
         self.val_TARGET_DIR_NPY = TARGET_DIR_NPY;
-        self._check_dir_existence_(self.val_TARGET_DIR_NPY)
+        self.__check_dir_existence(self.val_TARGET_DIR_NPY)
         print('Saving npy files to %s' % (os.getcwd() + '\\' + self.val_TARGET_DIR_NPY + '\\'))
         
         self.var_TARGET_DIR_TFR = TARGET_DIR_TFR;
-        self._check_dir_existence_(self.var_TARGET_DIR_TFR)
+        self.__check_dir_existence(self.var_TARGET_DIR_TFR)
         print('Saving TFRecord files to %s' % (os.getcwd() + '\\' + self.var_TARGET_DIR_TFR + '\\'))
         
         self.var_split_TRAIN_VALID = split_TRAIN_VALID;
         
     def PROCESS_1_CREATE_TFRECORD(self, tfrecord_filename):
         if (self.var_split_TRAIN_VALID == 0):
-            self.writer = self._generate_TFRecord_(tfrecord_filename)
+            self.writer = self.__generate_TFRecord(tfrecord_filename)
         else:
-            self.writer_TRAIN = self._generate_TFRecord_(tfrecord_filename + "_TRAIN")
-            self.writer_VALID = self._generate_TFRecord_(tfrecord_filename + "_VALID")
+            self.writer_TRAIN = self.__generate_TFRecord(tfrecord_filename + "_TRAIN")
+            self.writer_VALID = self.__generate_TFRecord(tfrecord_filename + "_VALID")
     
     def PROCESS_2_USE_DATA(self, connectomes1000_project = True,
                            SALD_project = False,
@@ -109,7 +109,7 @@ class preprocess_():
                 string = ('UNABLE TO SAVE: ' + splited_file_name)   
                 print(string)
                 continue
-            arr = self._connectomes1000_noise_correction_(arr)
+            arr = self.__connectomes1000_noise_correction(arr)
             
             arr = np.subtract(arr,np.mean(arr)) # norm data
             arr = np.divide(arr,np.std(arr)) # norm data
@@ -119,9 +119,9 @@ class preprocess_():
             sex = self.labels['sex'][idx]
             np.save(file_name,arr)
             
-            image_buffer, height, width, depth = self._process_image_(filename=file_name)
+            image_buffer, height, width, depth = self.__process_image(filename=file_name)
             
-            example = self._convert_to_example_(file_name, image_buffer, label, np.int_(sex), height, width, depth)
+            example = self.__convert_to_example(file_name, image_buffer, label, np.int_(sex), height, width, depth)
             
             if(self.var_split_TRAIN_VALID == 0):
                 self.writer.write(example.SerializeToString())
@@ -146,7 +146,7 @@ class preprocess_():
             self.writer_TRAIN.close()
             self.writer_VALID.close()
             
-    def _check_dir_existence_(self, dir_name):
+    def __check_dir_existence(self, dir_name):
         '''
         Creates directory if it does not exist.
         \nINPUT:
@@ -154,7 +154,7 @@ class preprocess_():
         '''
         PU.manip.create_dir_if_not_exists(os.getcwd() + '\\' + dir_name + '\\')
     
-    def _generate_TFRecord_(self, filename):
+    def __generate_TFRecord(self, filename):
         '''
         Creates directory if it does not exist.
         \nINPUT:
@@ -164,7 +164,7 @@ class preprocess_():
         output_file = os.path.join(self.var_TARGET_DIR_TFR, output_filename)
         return tf.python_io.TFRecordWriter(output_file)
     
-    def _connectomes1000_noise_correction_(self, arr):
+    def __connectomes1000_noise_correction(self, arr):
         # NaN values in corners
      
         while True:
@@ -206,7 +206,7 @@ class preprocess_():
                     arr[np.int_(nan_place[0]),np.int_(nan_place[1]),np.int_(nan_place[2])] = add_/num_
         return arr
     
-    def _process_image_(self, filename):
+    def __process_image(self, filename):
         """Process a single image file.
         Args:
             data_dir: string, root directory of images eg. './data/'
@@ -225,7 +225,7 @@ class preprocess_():
         
         try:
                 #extract numpy header information
-                header_len,dt,index_order,np_array_shape = self._interpret_npy_header_(image_data)
+                header_len,dt,index_order,np_array_shape = self.__interpret_npy_header(image_data)
                 image = np.frombuffer(image_data, dtype=dt, offset=10+header_len)
                 image = np.reshape(image,np_array_shape,order=index_order)
             
@@ -241,7 +241,7 @@ class preprocess_():
         depth = image.shape[2]
         return image_data[10+header_len:], height, width, depth
     
-    def _interpret_npy_header_(self, encoded_image_data):
+    def __interpret_npy_header(self, encoded_image_data):
         """Extracts numpy header information from byte encoded .npy files
         
         Args:
@@ -302,20 +302,20 @@ class preprocess_():
       return tf.train.Feature(int64_list=tf.train.Int64List(value=value))
     
     
-    def _float_feature(self, value):
+    def __float_feature(self, value):
       """Wrapper for inserting float features into Example proto."""
       if not isinstance(value, list):
         value = [value]
       return tf.train.Feature(float_list=tf.train.FloatList(value=value))
     
     
-    def _bytes_feature(self, value):
+    def __bytes_feature(self, value):
       """Wrapper for inserting bytes features into Example proto."""
       if isinstance(value, six.string_types):           
         value = six.binary_type(value, encoding='utf-8') 
       return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
      
-    def _convert_to_example_(self, filename, image_buffer, label, sex, height, width, depth):
+    def __convert_to_example(self, filename, image_buffer, label, sex, height, width, depth):
       """Build an Example proto for an example.
       Args:
         filename: string, path to an image file, e.g., '/path/to/example.npy'
@@ -331,13 +331,10 @@ class preprocess_():
       
       
       example = tf.train.Example(features=tf.train.Features(feature={
-          'image/height': self._int64_feature(height),
-          'image/width': self._int64_feature(width),
-          'image/depth': self._int64_feature(depth),
-          'image/label': self._float_feature(label),
-          'image/sex': self._int64_feature(sex),
-          'image/encoded': self._bytes_feature(image_buffer)}))
+          'image/height': self.__int64_feature(height),
+          'image/width': self.__int64_feature(width),
+          'image/depth': self.__int64_feature(depth),
+          'image/label': self.__float_feature(label),
+          'image/sex': self.__int64_feature(sex),
+          'image/encoded': self.__bytes_feature(image_buffer)}))
       return example
-        
-     
-

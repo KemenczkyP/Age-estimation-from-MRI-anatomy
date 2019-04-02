@@ -85,7 +85,7 @@ class Age_estim_CNN(object):
         self.my_checkpointing_config = tf.estimator.RunConfig(save_checkpoints_secs = CHECKPOINT_save_checkpoints_secs, #saves checkpoints in every 'CHECKPOINT_save_checkpoints_secs' seconds
                                                               keep_checkpoint_max = CHECKPOINT_keep_checkpoint_max) #keep the last 'CHECKPOINT_keep_checkpoint_max' checkpoints
                                    
-        self.CLASSIFIER = tf.estimator.Estimator(model_fn=self._optimizer_,
+        self.CLASSIFIER = tf.estimator.Estimator(model_fn=self.__optimizer,
                                                  model_dir=os.getcwd() + self.var_MODEL_DATA_DIR,
                                                  config=self.my_checkpointing_config)
         
@@ -147,7 +147,7 @@ class Age_estim_CNN(object):
                 
                 
                 
-    def _optimizer_(self, features, labels, mode):
+    def __optimizer(self, features, labels, mode):
         """Model function for CNN."""
         with tf.device('/gpu:0'):
             
@@ -203,9 +203,9 @@ class Age_estim_CNN(object):
 
     def input_fn(self):
         """Input function which provides batches."""
-        dataset = tf.data.Dataset.from_tensor_slices(self._filenames_([True, False, False], self.var_TFR_DATA_DIR))
+        dataset = tf.data.Dataset.from_tensor_slices(self.__filenames([True, False, False], self.var_TFR_DATA_DIR))
         dataset = dataset.flat_map(tf.data.TFRecordDataset)
-        dataset = dataset.map(lambda value: self._record_parser_(value), num_parallel_calls=5)
+        dataset = dataset.map(lambda value: self.__record_parser(value), num_parallel_calls=5)
         dataset = dataset.shuffle(buffer_size = self.var_batch_size*100)
         dataset = dataset.prefetch(self.var_batch_size)
         
@@ -219,9 +219,9 @@ class Age_estim_CNN(object):
         
     def input_test_fn(self):
         """Input function which provides batches."""
-        dataset = tf.data.Dataset.from_tensor_slices(self, self._filenames_([False,True,False], self.var_TFR_DATA_DIR))
+        dataset = tf.data.Dataset.from_tensor_slices(self, self.__filenames([False,True,False], self.var_TFR_DATA_DIR))
         dataset = dataset.flat_map(tf.data.TFRecordDataset)
-        dataset = dataset.map(lambda value: self._record_parser_(value), num_parallel_calls=5)
+        dataset = dataset.map(lambda value: self.__record_parser(value), num_parallel_calls=5)
         dataset = dataset.shuffle(buffer_size = self.var_batch_size*100)
         dataset = dataset.prefetch(self.var_batch_size)
         
@@ -235,9 +235,9 @@ class Age_estim_CNN(object):
         
     def input_valid_fn(self):
         """Input function which provides batches."""
-        dataset = tf.data.Dataset.from_tensor_slices(self, self._filenames_([False,False,True], self.var_TFR_DATA_DIR))
+        dataset = tf.data.Dataset.from_tensor_slices(self, self.__filenames([False,False,True], self.var_TFR_DATA_DIR))
         dataset = dataset.flat_map(tf.data.TFRecordDataset)
-        dataset = dataset.map(lambda value: self._record_parser_(value), num_parallel_calls=5)
+        dataset = dataset.map(lambda value: self.__record_parser(value), num_parallel_calls=5)
         dataset = dataset.shuffle(buffer_size = self.var_batch_size*100)
         dataset = dataset.prefetch(self.var_batch_size)
         
@@ -249,7 +249,7 @@ class Age_estim_CNN(object):
         print("iterator created")
         return {'x': images, 's': sex}, labels/100
         
-    def _filenames_(self, TRAIN_VALID_TEST, data_dir):
+    def __filenames(self, TRAIN_VALID_TEST, data_dir):
         """Return filenames for dataset."""
         if TRAIN_VALID_TEST[0]:
           return [
@@ -266,7 +266,7 @@ class Age_estim_CNN(object):
         else:
             raise('Each input is "False" !')
     
-    def _record_parser_(self, value):
+    def __record_parser(self, value):
         """Parse a TFRecord file from `value`."""
      
         keys_to_features = {
@@ -304,4 +304,3 @@ class Age_estim_CNN(object):
         
         os.system('python -m tensorboard.main --logdir=' + os.getcwd() + self.var_MODEL_DATA_DIR)
         return
-        
