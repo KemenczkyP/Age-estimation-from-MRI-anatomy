@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+@author: KemenczkyP
+
+Image to tfrecords reference: https://github.com/MRegina/numpy_array_to_tfrecords
+"""
+
 import os
 import sys
 import time
@@ -20,8 +27,11 @@ class preprocess_():
         """
         Preprocess nifti files with corresponding label parameters
         :param mri_volume_size:
-        :param split_train_valid: 0<=split_train_valid<1
-            \t\t: if 0-no splitting, one tfrecord file ,if bigger, random generate a number, if it is bigger than split_train_valid, volume goes to VALID, if not volume goes to TRAIN
+        :param split_train_valid: \n
+            \t\t if 0-no splitting, one tfrecord file\n
+            \t\t if float>0, random generate a number, if it is bigger than split_train_valid, volume goes to VALID, if not volume goes to TRAIN\n
+            \t\t if list with 2 elements, random generate a number, and the two elements define the limits for train, valid and test choice
+
         :param flags: parsed args
         """
 
@@ -39,56 +49,75 @@ class preprocess_():
         self.var_split_train_valid = split_train_valid;
 
     def PROCESS_1_CREATE_TFRECORD(self, tfrecord_filename):
+        """
+        General filename for tfrecord. If more sets are created -> filename+'_TRAIN'/'_VALID'/'_TEST'
+        :param tfrecord_filename:
+        :return:
+        """
+        # split_train_valid==0 than only 1 tfrecord
         if (self.var_split_train_valid == 0):
             self.writer = self._generate_TFRecord_(tfrecord_filename)
+
+        # split_train_valid is a list than 3 tfrecords (train, valid, test)
         elif (isinstance(self.var_split_train_valid, list)):
             self.writer_TRAIN = self._generate_TFRecord_(tfrecord_filename + "_TRAIN")
             self.writer_VALID = self._generate_TFRecord_(tfrecord_filename + "_VALID")
             self.writer_TEST = self._generate_TFRecord_(tfrecord_filename + "_TEST")
+
+        # split_train_valid>0 float than 2 tfrecords (train, valid)
         else:
             self.writer_TRAIN = self._generate_TFRecord_(tfrecord_filename + "_TRAIN")
             self.writer_VALID = self._generate_TFRecord_(tfrecord_filename + "_VALID")
 
-    def PROCESS_2_USE_DATA(self, connectomes1000_project=True,
+    def PROCESS_2_USE_DATA(self,
+                           connectomes1000_project=True,
                            SALD_project=False,
                            ADNI=False,
-                           MTA=False,
+                           INHOUSE=False,
                            MIGRAINE_True=False,
-                           MIGRAINE_False=False,
-                           BIOBANK=False,
-                           MR_ART=False):
-
+                           MIGRAINE_False=False):
+        '''
+        Reads the corresponding datasheets that contain age and sex. Reads and concatenate all datasets marked with 'True'.
+        :param connectomes1000_project: read FCP dataset
+        :param SALD_project: read SALD dataset
+        :param ADNI: read ADNI dataset
+        :param INHOUSE: read INHOUSE dataset
+        :param MIGRAINE_True: read migraine positive dataset
+        :param MIGRAINE_False: read migraine negative dataset
+        :return:
+        '''
         self.var_data_usage = np.array([connectomes1000_project,
                                         SALD_project,
                                         ADNI,
-                                        MTA,
+                                        INHOUSE,
                                         MIGRAINE_True,
-                                        MIGRAINE_False,
-                                        BIOBANK,
-                                        MR_ART])
+                                        MIGRAINE_False])
 
         read_file = np.where(self.var_data_usage == 1)[0]
+
+        # each reader function handles different data sheet formats defined in IU
         functions = [IU.manip.scan_1000_c,
                      IU.manip.scan_kinai,
                      IU.manip.scan_ADNI,
                      IU.manip.scan_MTA,
                      IU.manip.scan_migrene_True,
-                     IU.manip.scan_migrene_False,
-                     IU.manip.scan_BB,
-                     IU.manip.scan_MRA]
-
+                     IU.manip.scan_migrene_False]
+        # more datasets marked
         if (len(read_file) > 1):
             arr = []
             for idx in range(len(read_file)):
                 arr.append(functions[read_file[idx]]())
             self.labels = IU.manip.arange_dicts(arr)
+
+        # 0 datasets marked
         elif (len(read_file) == 0):
-            print(
-                "Each label variable is marked by 'False'! The process will stop. PLEASE USE THE 'PROCESS_2_USE_DATA' FUNCTION AGAIN!")
+            print("Each label variable is marked by 'False'! The process will stop. PLEASE USE THE 'PROCESS_2_USE_DATA' FUNCTION AGAIN!")
+
+        # 1 dataset marked
         elif (len(read_file) == 1):
             self.labels = functions[read_file[0]]()
 
-        # Check file exist
+        # check whether the nifti files exist
         new_labels = {'age': [],
                       'file_name': [],
                       'sex': []}
@@ -98,17 +127,21 @@ class preprocess_():
                 new_labels['file_name'].append(self.labels['file_name'][idx])
                 new_labels['sex'].append(self.labels['sex'][idx])
 
-        a = np.arange(0, len(new_labels['age']))
-        np.random.shuffle(a)
-        self.labels['age'] = np.array(new_labels['age'])[a]
-        self.labels['file_name'] = np.array(new_labels['file_name'])[a]
-        self.labels['sex'] = np.array(new_labels['sex'])[a]
+        shuffler = np.arange(0, len(new_labels['age']))
+        np.random.shuffle(shuffler)
+        self.labels['age'] = np.array(new_labels['age'])[shuffler]
+        self.labels['file_name'] = np.array(new_labels['file_name'])[shuffler]
+        self.labels['sex'] = np.array(new_labels['sex'])[shuffler]
 
         return self.labels
 
     def PROCESS_3_SAVE(self):
+
+        # timer
         start = time.time()
+
         num_of_saved_files = 0
+        # iterate over the elements of the dataset
         for idx in range(self.labels['age'].shape[0]):
 
             splited_file_name = self.labels['file_name'][idx].split('.')[0].split('\\')[-1]  # split the filename
@@ -116,25 +149,38 @@ class preprocess_():
             img = nib.load(self.labels['file_name'][idx])  # get nifti file
             arr = np.array(img.dataobj)
 
-            if (arr.shape != (self.var_mri_volume_size[0], self.var_mri_volume_size[1],
-                              self.var_mri_volume_size[2])):  # if the datasize is incorrect, skip
+            # if the datasize is incorrect (public dataset, MNI transform failure), skip
+            if (arr.shape != (self.var_mri_volume_size[0],
+                              self.var_mri_volume_size[1],
+                              self.var_mri_volume_size[2])):
                 string = ('UNABLE TO SAVE: ' + splited_file_name)
                 print(string)
                 continue
+
+            # correct NaN values appearing on the edges of public MNI volumes
             arr = self._connectomes1000_noise_correction_(arr)
 
+            # noramlize data to N(0,1)
             arr = np.subtract(arr, np.mean(arr))  # norm data
             arr = np.divide(arr, np.std(arr))  # norm data
 
+            # save numpy file temporarily
             file_name = self.var_target_dir_npy + '\\' + splited_file_name
             label = self.labels['age'][idx]
             sex = self.labels['sex'][idx]
             np.save(file_name, arr)
 
+            # generate tensorflow example
             image_buffer, height, width, depth = self._process_image_(filename=file_name)
+            example = tf.train.Example(features=tf.train.Features(feature={
+                'image/height': self._int64_feature(height),
+                'image/width': self._int64_feature(width),
+                'image/depth': self._int64_feature(depth),
+                'image/label': self._float_feature(label),
+                'image/sex': self._int64_feature(np.int_(sex)),
+                'image/encoded': self._bytes_feature(image_buffer)}))
 
-            example = self._convert_to_example_(file_name, image_buffer, label, np.int_(sex), height, width, depth)
-
+            # write example into the appropriate file
             if (self.var_split_train_valid == 0):
                 self.writer.write(example.SerializeToString())
             elif (isinstance(self.var_split_train_valid, list)):
@@ -159,11 +205,16 @@ class preprocess_():
             end = time.time()
             string = ('File saved: ' + splited_file_name + ';\t Time:' + str(end - start))
             print(string)
+            # remove temporary numpy file
             os.remove(file_name + '.npy')
             num_of_saved_files += 1
         print("\n{0} files saved in TFRecords.".format(num_of_saved_files))
 
     def PROCESS_4_CLOSE_TFRECORD(self):
+        """
+        Close tfrecords
+        :return:
+        """
         if (self.var_split_train_valid == 0):
             self.writer.close()
         elif (isinstance(self.var_split_train_valid, list)):
@@ -201,12 +252,20 @@ class preprocess_():
         return tf.python_io.TFRecordWriter(output_file)
 
     def _connectomes1000_noise_correction_(self, arr):
+        """
+        Fill the NaN holes at the edge of the array. Simple image proc. algorithm that fills the holes with the mean
+        intensity of the surrounding voxel intesities.
+        :param arr: numpy array of MRI volume in MNI space
+        :return: corrected array
+        """
         # NaN values in corners
-
         while True:
             nans = np.isnan(arr)
-            if (np.sum(np.isnan(arr)) == 0):
+
+            # brake the loop if there are no more nan values
+            if (np.sum(nans) == 0):
                 break
+
             nans_dilated = scipy.ndimage.binary_dilation(nans)
             nans_diff = np.logical_xor(nans_dilated, nans)
             nans_diff_indexes = np.where(nans_diff)
@@ -244,16 +303,13 @@ class preprocess_():
         return arr
 
     def _process_image_(self, filename):
-        """Process a single image file.
-        Args:
-            data_dir: string, root directory of images eg. './data/'
-            filename: string, path to an image file in numpy format e.g., 'example.npy'
-        Returns:
-            image_buffer: string, encoded numpy array (should be 3D + a channel dimension)
-            height: integer, image height in voxels
-            width: integer, image width in voxels
-            depth: integer, image depth in voxels
-            num_channels: integer, number of color channels (last dimension of the numpy array)
+        """
+        Process MRI volume.
+        :param filename: numpy filename
+        :return: image_buffer
+        :return: height
+        :return: width
+        :return: depth
         """
 
         # Read the numpy array.
@@ -267,11 +323,9 @@ class preprocess_():
             image = np.reshape(image, np_array_shape, order=index_order)
 
         except ValueError as err:
-
             print(err)
 
         # Check that the image is a 3D array + a channel dimension
-
         assert len(image.shape) == 3
         height = image.shape[0]
         width = image.shape[1]
@@ -330,43 +384,18 @@ class preprocess_():
             raise ValueError('The encoded data length is not sufficient')
 
     def _int64_feature(self, value):
-        """Wrapper for inserting int64 features into Example proto."""
         if not isinstance(value, list):
             value = [value]
 
         return tf.train.Feature(int64_list=tf.train.Int64List(value=value))
 
     def _float_feature(self, value):
-        """Wrapper for inserting float features into Example proto."""
         if not isinstance(value, list):
             value = [value]
         return tf.train.Feature(float_list=tf.train.FloatList(value=value))
 
     def _bytes_feature(self, value):
-        """Wrapper for inserting bytes features into Example proto."""
         if isinstance(value, six.string_types):
             value = six.binary_type(value, encoding='utf-8')
         return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
-    def _convert_to_example_(self, filename, image_buffer, label, sex, height, width, depth):
-        """Build an Example proto for an example.
-        Args:
-          filename: string, path to an image file, e.g., '/path/to/example.npy'
-          image_buffer: string, encoded 3D numpy array
-          label: integer, identifier for the ground truth for the network
-          height: integer, image height in voxels
-          width: integer, image width in voxels
-          depth: integer, image depth in voxels
-          num_channels: integer, number of color channels (last dimension of the numpy array)
-        Returns:
-          Example proto
-        """
-
-        example = tf.train.Example(features=tf.train.Features(feature={
-            'image/height': self._int64_feature(height),
-            'image/width': self._int64_feature(width),
-            'image/depth': self._int64_feature(depth),
-            'image/label': self._float_feature(label),
-            'image/sex': self._int64_feature(sex),
-            'image/encoded': self._bytes_feature(image_buffer)}))
-        return example
