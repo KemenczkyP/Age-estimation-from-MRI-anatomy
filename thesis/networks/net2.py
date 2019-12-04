@@ -1,12 +1,6 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Jan  9 09:32:54 2019
+import tensorflow as tf
 
-@author: KemyPeti
-"""
 def net(input_layer, sex, num_class, drop_out_rate=0, training = 1):
-    import tensorflow as tf
-    
 
     # conv_1 = [batch, 39,47,39,1]
     with tf.variable_scope("conv1", reuse=tf.AUTO_REUSE):
