@@ -1,15 +1,7 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Jan  9 09:32:54 2019
-
-@author: KemyPeti
-"""
-
+import tensorflow as tf
 
 def net(input_layer, sex, num_class, drop_out_rate=0, training = 1):
-    import tensorflow as tf
 
-    # conv_1 = [batch, 39,47,39,1]
     with tf.variable_scope("conv_group_1", reuse=tf.AUTO_REUSE):
         conv_1 = tf.layers.conv3d( 
                 inputs=input_layer,
@@ -29,7 +21,6 @@ def net(input_layer, sex, num_class, drop_out_rate=0, training = 1):
         
         
     with tf.variable_scope("inception1", reuse=tf.AUTO_REUSE):
-        # conv_2_1 = [batch, 39,47,39,4]
         conv_4_1 = tf.layers.conv3d( 
                 inputs=dropout_3,
                 filters=32, #depth
@@ -40,8 +31,7 @@ def net(input_layer, sex, num_class, drop_out_rate=0, training = 1):
                 name = 'inc-conv2_1')
         dropout_4_1 = tf.layers.dropout(conv_4_1,rate=drop_out_rate,
                 name = 'do2_1')
-        
-        # conv_2_2 = [batch, 39,47,39,4]
+
         conv_4_2 = tf.layers.conv3d( 
                 inputs=dropout_3,
                 filters=32, #depth
@@ -52,8 +42,7 @@ def net(input_layer, sex, num_class, drop_out_rate=0, training = 1):
                 name = 'inc-conv2_2')
         dropout_4_2 = tf.layers.dropout(conv_4_2,rate=drop_out_rate,
                 name = 'do2_2')
-        
-        # conv_2_3 = [batch, 39,47,39,4]
+
         conv_4_3 = tf.layers.conv3d( 
                 inputs=dropout_3,
                 filters=32, #depth
@@ -76,13 +65,11 @@ def net(input_layer, sex, num_class, drop_out_rate=0, training = 1):
                                                   strides = (2,2,2),
                                                   padding="same",
                                                   activation=tf.nn.leaky_relu,
-                                                  name = 'inc-deconv2_4') 
-        # concat_4 = [batch, 39,47,39,16]
+                                                  name = 'inc-deconv2_4')
         batchnorm_6 = tf.concat([dropout_4_1,dropout_4_2,dropout_4_3, deconv_4_4_2],4,
                 name = 'concat2')
     
     with tf.variable_scope("inception2", reuse=tf.AUTO_REUSE):
-        # conv_5_1 = [batch, 39,47,39,2]
         conv_7_1 = tf.layers.conv3d( 
                 inputs=batchnorm_6,
                 filters=128, #depth
@@ -93,15 +80,12 @@ def net(input_layer, sex, num_class, drop_out_rate=0, training = 1):
                 name = 'conv_7_1')
         dropout_7_1 = tf.layers.dropout(conv_7_1,rate=drop_out_rate,
                 name = 'dropout_7_1')
-        # pool_6_1 = [batch, 20,24,20,2]
         pool_8_1 = tf.layers.max_pooling3d(inputs=dropout_7_1, pool_size=[2, 2, 2], strides=2, padding="same",
                 name = 'pool_8_1')
-        # conv_6_2 = [batch, 20,24,20,16]
         dropout_8_1 = tf.layers.dropout(pool_8_1,rate=drop_out_rate,
                 name = 'dropout_8_1')
         
-        
-        # conv_5_2 = [batch, 39,47,39,2]
+
         conv_7_2 = tf.layers.conv3d( 
                 inputs=batchnorm_6,
                 filters=128, #depth
@@ -123,8 +107,7 @@ def net(input_layer, sex, num_class, drop_out_rate=0, training = 1):
         dropout_8_2 = tf.layers.dropout(conv_8_2,rate=drop_out_rate,
                 name = 'dropout_8_2')
             
-        
-        # conv_5_3 = [batch, 39,47,39,2]
+
         conv_7_3 = tf.layers.conv3d( 
                 inputs=batchnorm_6,
                 filters=128, #depth
@@ -135,7 +118,7 @@ def net(input_layer, sex, num_class, drop_out_rate=0, training = 1):
                 name = 'conv_7_3')
         dropout_7_3 = tf.layers.dropout(conv_7_3,rate=drop_out_rate,
                 name = 'dropout_7_3')
-        # conv_6_3 = [batch, 20,24,20,8]
+
         conv_8_3 = tf.layers.conv3d( 
                 inputs=dropout_7_3,
                 filters=128, #depth
@@ -169,7 +152,7 @@ def net(input_layer, sex, num_class, drop_out_rate=0, training = 1):
                 name = 'conv_11')
         dropout_12 = tf.layers.dropout(conv_11,rate=drop_out_rate,
                 name = 'dropout_12')
-        #[batch, 10,12,10,-1]
+
         pool_13 = tf.layers.max_pooling3d(inputs=dropout_12, pool_size=[2,2,2], strides=2,
                 name = 'pool_13')
         
@@ -182,7 +165,7 @@ def net(input_layer, sex, num_class, drop_out_rate=0, training = 1):
                 name = 'conv_14')
         dropout_15 = tf.layers.dropout(conv_14,rate=drop_out_rate,
                 name = 'dropout_15')
-        #batch, 5,6,5,-1]
+
         pool_16 = tf.layers.max_pooling3d(inputs=dropout_15, pool_size=[2,2,2], strides=2,
                 name = 'pool_16')
     

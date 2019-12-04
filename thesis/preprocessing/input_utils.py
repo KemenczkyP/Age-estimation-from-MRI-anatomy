@@ -6,14 +6,11 @@ This script contains functions that are database specific.
 The return value of these functions is a dict with fields: file_name, sex, age
 The fields contain lists of values.
 
-
-
 """
 
 
 import sys
 import os
-sys.path
 sys.path.append(os.getcwd() + '\\UTILS\\')
 
 class manip():

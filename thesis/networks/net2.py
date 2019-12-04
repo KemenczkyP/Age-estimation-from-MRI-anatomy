@@ -2,7 +2,6 @@ import tensorflow as tf
 
 def net(input_layer, sex, num_class, drop_out_rate=0, training = 1):
 
-    # conv_1 = [batch, 39,47,39,1]
     with tf.variable_scope("conv1", reuse=tf.AUTO_REUSE):
         conv_1 = tf.layers.conv3d( 
                 inputs=input_layer,
@@ -19,7 +18,7 @@ def net(input_layer, sex, num_class, drop_out_rate=0, training = 1):
         dropout_3 = tf.layers.dropout(pool_2,rate=drop_out_rate)
     
     with tf.variable_scope("inception1", reuse=tf.AUTO_REUSE):
-        # conv_2_1 = [batch, 39,47,39,4]
+
         conv_4_1 = tf.layers.conv3d( 
                 inputs=dropout_3,
                 filters=32, #depth
@@ -30,8 +29,7 @@ def net(input_layer, sex, num_class, drop_out_rate=0, training = 1):
                 name = 'conv_4_1')
         dropout_4_1 = tf.layers.dropout(conv_4_1,rate=drop_out_rate,
                 name = 'dropout_4_1')
-        
-        # conv_2_2 = [batch, 39,47,39,4]
+
         conv_4_2 = tf.layers.conv3d( 
                 inputs=dropout_3,
                 filters=32, #depth
@@ -42,8 +40,8 @@ def net(input_layer, sex, num_class, drop_out_rate=0, training = 1):
                 name = 'conv_4_2')
         dropout_4_2 = tf.layers.dropout(conv_4_2,rate=drop_out_rate,
                 name = 'dropout_4_2')
-        
-        # conv_2_3 = [batch, 39,47,39,4]
+
+
         conv_4_3 = tf.layers.conv3d( 
                 inputs=dropout_3,
                 filters=32, #depth
@@ -66,8 +64,8 @@ def net(input_layer, sex, num_class, drop_out_rate=0, training = 1):
                                                   strides = (2,2,2),
                                                   padding="same",
                                                   activation=tf.nn.leaky_relu,
-                                                  name = 'deconv_4_4_2') 
-        # concat_4 = [batch, 39,47,39,16]
+                                                  name = 'deconv_4_4_2')
+
         batchnorm_6 = tf.concat([dropout_4_1,dropout_4_2,dropout_4_3, deconv_4_4_2],4,
                 name = 'batchnorm_6')
         

@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 def net(input_layer, sex, num_class, drop_out_rate=0, training = 1):
-    # conv_1 = [batch, 39,47,39,1]
+
     with tf.variable_scope("conv1", reuse=tf.AUTO_REUSE):
         conv_1 = tf.layers.conv3d( 
                 inputs=input_layer,
