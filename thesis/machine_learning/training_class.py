@@ -108,10 +108,6 @@ class Age_estim_CNN(object):
             self.train_epoch = int(epoch / valid_by_epoch)  # for loop limit
             self.train_input_epoch = valid_by_epoch  # input fn epoch
 
-            if (init_again == 1):
-                sess.run(tf.global_variables_initializer())
-                sess.run(tf.local_variables_initializer())
-
             '''
             images, labels = input_valid_fn()
             print("returned")

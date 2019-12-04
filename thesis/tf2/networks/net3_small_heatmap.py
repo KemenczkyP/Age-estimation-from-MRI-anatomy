@@ -136,17 +136,15 @@ def generate_model(drop_out_rate):
 
     ################################### END ###################################
     concat_21 = tf.keras.layers.Concatenate(axis=-1)([pool_16, dropout_20_2])
-    pool_25_flat = tf.keras.layers.Flatten()(concat_21)
 
-    concat_s = tf.keras.layers.Concatenate(axis=-1)([pool_25_flat, sexs])
+    avgp = tf.keras.layers.AveragePooling3D(padding='same',
+                                            pool_size=(concat_21.shape[1],
+                                                       concat_21.shape[2],
+                                                       concat_21.shape[3]))(concat_21)
 
-    dense1 = tf.keras.layers.Dense(units=128,
-                                   activation=tf.nn.leaky_relu)(concat_s)
-    dense1 = tf.keras.layers.Dropout(rate=drop_out_rate)(dense1)
+    fl = tf.keras.layers.Flatten()(avgp)
 
-    logits = tf.keras.layers.Dense(units=1,
-                                   activation=tf.nn.leaky_relu)(dense1)
+    de = tf.keras.layers.Dense(1, activation=tf.nn.leaky_relu, use_bias=False)(fl)
 
-    model = tf.keras.Model(inputs=[inputs, sexs], outputs=logits)
+    model = tf.keras.Model(inputs=[inputs, sexs], outputs=de)
     return model
-

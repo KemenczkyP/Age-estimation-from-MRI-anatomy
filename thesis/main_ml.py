@@ -37,9 +37,8 @@ def main():
                               LEARNING_RATE_decay_steps=80000,
                               LEARNING_RATE_decay_rate=0.98)
 
-    AE_CNN.TRAIN(epoch=10,
-                 valid_by_epoch=1,# monitoring valid results in every 'valid_by_epoch' epochs
-                 init_again=0)
+    AE_CNN.TRAIN(epoch=20,
+                 valid_by_epoch=1)# monitoring valid results in every 'valid_by_epoch' epochs
     AE_CNN.TEST()  # monitoring valid results in every 'valid_by_epoch' epochs
 
 
