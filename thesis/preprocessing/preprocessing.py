@@ -2,7 +2,8 @@
 """
 @author: KemenczkyP
 
-Image to tfrecords reference: https://github.com/MRegina/numpy_array_to_tfrecords
+This script is partially based on code from Regina J. Deák-Meszlényi
+https://github.com/MRegina/numpy_array_to_tfrecords
 """
 
 import os
@@ -97,9 +98,9 @@ class preprocess_():
 
         # each reader function handles different data sheet formats defined in IU
         functions = [IU.manip.scan_1000_c,
-                     IU.manip.scan_kinai,
+                     IU.manip.scan_SALD,
                      IU.manip.scan_ADNI,
-                     IU.manip.scan_MTA,
+                     IU.manip.scan_INHOUSE,
                      IU.manip.scan_migrene_True,
                      IU.manip.scan_migrene_False]
         # more datasets marked

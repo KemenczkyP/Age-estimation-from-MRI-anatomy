@@ -13,10 +13,10 @@ sns.set("talk",
         {'axes.grid' : False})
 
 parser = argparse.ArgumentParser(description='Activation visualization flags')
-parser.add_argument('--sample_MRI',       default='.\\DATA\\INHOUSE\\wmanat_aging_000004.npy', type=str, help='Path to sample MRI image.')
+parser.add_argument('--sample_MRI',       default=os.getcwd()+'\\DATA\\INHOUSE\\wmanat_aging_000004.npy', type=str, help='Path to sample MRI image.')
 
-parser.add_argument('--migraine_heatmap', default='.\\heatmaps\\mig_heatmap.npy', type=str, help='Average heatmap of the migraine group')
-parser.add_argument('--control_heatmap',  default='.\\heatmaps\\con_heatmap.npy', type=str, help='Average heatmap of the control group')
+parser.add_argument('--migraine_heatmap', default=os.getcwd()+'\\heatmaps\\mig_heatmap_small.npy', type=str, help='Average heatmap of the migraine group')
+parser.add_argument('--control_heatmap',  default=os.getcwd()+'\\heatmaps\\ctr_heatmap_small.npy', type=str, help='Average heatmap of the control group')
 
 args = parser.parse_args()
 
@@ -73,30 +73,30 @@ for idx in range(0, data.shape[2]):
     ax0.set_title('T1 weighted MRI volume\ntransformed into MNI space\n MNI Z-coordinate: {}\n'.format(MNI_coord))
 
     # control heatmap
-    ax1.imshow(example_heatmap_ctr, vmin=example_heatmap_ctr.min(), vmax=example_heatmap_ctr.max())
+    ax1.imshow(example_heatmap_ctr, vmin=ctr_heatmap.min(), vmax=ctr_heatmap.max())
     ax1.set_title('Averaged heatmap\nfor control group')
 
     # control heatmap on sample image
     ax4.imshow(example_slice, cmap='Greys')
-    ax4.pcolormesh(example_heatmap_ctr, cmap='Purples', alpha = 0.5, vmin=example_heatmap_ctr.min(), vmax=example_heatmap_ctr.max())
+    ax4.pcolormesh(example_heatmap_ctr, cmap='Purples', alpha = 0.5, vmin=ctr_heatmap.min(), vmax=ctr_heatmap.max())
     ax4.set_title('Heatmap on sample\nMRI volume \n(control)')
 
     # migraine heatmap
-    ax2.imshow(example_heatmap_mig, vmin=example_heatmap_ctr.min(), vmax=example_heatmap_ctr.max())
+    ax2.imshow(example_heatmap_mig, vmin=ctr_heatmap.min(), vmax=ctr_heatmap.max())
     ax2.set_title('Averaged heatmap\nfor migraine group')
 
     # migraine heatmap on sample image
     ax5.imshow(example_slice, cmap='Greys')
-    ax5.pcolormesh(example_heatmap_mig, cmap='Purples', alpha = 0.5, vmin=example_heatmap_ctr.min(), vmax=example_heatmap_ctr.max())
+    ax5.pcolormesh(example_heatmap_mig, cmap='Purples', alpha = 0.5, vmin=ctr_heatmap.min(), vmax=ctr_heatmap.max())
     ax5.set_title('Heatmap on sample\nMRI volume\n(migraine)')
 
     # mig_heatmap-ctr_heatmap heatmap
-    ax3.imshow(example_heatmap_dif, vmin=example_heatmap_ctr.min(), vmax=example_heatmap_ctr.max())
+    ax3.imshow(example_heatmap_dif, vmin=ctr_heatmap.min(), vmax=ctr_heatmap.max())
     ax3.set_title('Intensity difference \nbetween groups')
 
     # mig_heatmap-ctr_heatmap heatmap on sample image
     ax6.imshow(example_slice, cmap='Greys')
-    ax6.pcolormesh(example_heatmap_dif, cmap='Purples', alpha = 0.5, vmin=example_heatmap_ctr.min(), vmax=example_heatmap_ctr.max())
+    ax6.pcolormesh(example_heatmap_dif, cmap='Purples', alpha = 0.5, vmin=ctr_heatmap.min(), vmax=ctr_heatmap.max())
     ax6.set_title('Intensity difference\non brain')
 
     # remove ticks
@@ -116,13 +116,13 @@ for idx in range(0, data.shape[2]):
     ax6.set_xticks([])
 
     # show color bars
-    norm = mpl.colors.Normalize(vmin=example_heatmap_ctr.min(),
-                                vmax=example_heatmap_ctr.max())
+    norm = mpl.colors.Normalize(vmin=ctr_heatmap.min(),
+                                vmax=ctr_heatmap.max())
     cb1 = mpl.colorbar.ColorbarBase(ax=ax7,
                                     norm=norm,
                                     orientation='vertical')
-    norm = mpl.colors.Normalize(vmin=example_heatmap_ctr.min(),
-                                vmax=example_heatmap_ctr.max())
+    norm = mpl.colors.Normalize(vmin=ctr_heatmap.min(),
+                                vmax=ctr_heatmap.max())
     cb1 = mpl.colorbar.ColorbarBase(ax=ax8,
                                     norm=norm,
                                     orientation='vertical',
@@ -137,3 +137,5 @@ for idx in range(0, data.shape[2]):
     ax4.cla()
     ax5.cla()
     ax6.cla()
+    ax7.cla()
+    ax8.cla()

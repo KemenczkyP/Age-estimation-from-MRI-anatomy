@@ -23,13 +23,13 @@ def main():
 
     AE_CNN = TC.Age_estim_CNN(NETWORK_STRUCTURE=ANN.net,
                               MRI_volume_size=[79, 95, 79],
-                              TFR_DATA_DIR='TEMP_DATA\\tf_record_folder\\2019_09_11\\',
-                              MODEL_DATA_DIR='\\tmp\\mnist_convnet_model\\thesis\\',
-                              MODEL_NAME='net3_retrain4_justCNNlFNN_10eps',
+                              TFR_DATA_DIR='DATA\\TFRecords\\',
+                              MODEL_DATA_DIR='\\saved_models\\',
+                              MODEL_NAME='net3_pre',
                               batch_size=5,
-                              TFRec_train_name='MTA_data_TRAIN_data',
-                              TFRec_valid_name='MTA_data_VALID_data',
-                              TFRec_test_name='Mig_N_data',
+                              TFRec_train_name='PUBLIC_TRAIN_data',
+                              TFRec_valid_name='PUBLIC_VALID_data',
+                              TFRec_test_name='PUBLIC_VALID_data',
                               CHECKPOINT_save_checkpoints_secs=3600,
                               CHECKPOINT_keep_checkpoint_max=20,
                               DROPOUT_RATE=0,
@@ -37,7 +37,7 @@ def main():
                               LEARNING_RATE_decay_steps=80000,
                               LEARNING_RATE_decay_rate=0.98)
 
-    AE_CNN.TRAIN(epoch=20,
+    AE_CNN.TRAIN(epoch=70,
                  valid_by_epoch=1)# monitoring valid results in every 'valid_by_epoch' epochs
     AE_CNN.TEST()  # monitoring valid results in every 'valid_by_epoch' epochs
 

@@ -11,16 +11,18 @@ from scipy import ndimage, misc
 
 print(tf.__version__)
 
-from networks.net3_small_heatmap import generate_model
+from networks.net3_big_heatmap import generate_model
 from machine_learning.data_iterator import read_data, Data_Iterator
 from machine_learning.utils import print_process
 
 parser = argparse.ArgumentParser(description='TF2 train flags')
-parser.add_argument('--saved_model_path', default=os.getcwd() + '\\saved_model\\' + 'RE_model_9_3.0.pickle', type=str,
+parser.add_argument('--saved_model_path', default=os.getcwd() + '\\saved_model\\' + 'model_re_10_13.0.pickle', type=str,
                     help='Path to model weights to load')
 parser.add_argument('--csv_dir_path', default=os.getcwd() + '\\DATA\\', type=str,
                     help='Directory path storing label csv files')
 parser.add_argument('--train_max_epoch', default=20, type=int, help='Number of train epochs')
+parser.add_argument('--save_heatmap_path', default=os.getcwd() + '\\heatmaps\\', type=str, help='Heatmap save dir')
+parser.add_argument('--model_save_path',    default=os.getcwd() + '\\saved_model\\', type=str, help='Dir path to save model weights')
 
 args = parser.parse_args()
 
@@ -30,7 +32,7 @@ def copy_weights_into_model(model, weights):
 
     # copy layer weights
     for idx in range(len(model.layers)):
-
+        print(model.layers[idx].name)
         # load weights of similar layers
         if (weightsidx == 32):
             break
@@ -44,7 +46,7 @@ def copy_weights_into_model(model, weights):
             ws.append(np.zeros_like(ws[0]))
             ws.append(np.ones_like(ws[0]))
             model.layers[idx].set_weights(ws)
-            weightsidx += 2
+            weightsidx += 4
 
     # freeze convolutional layers
     for idx in range(1, len(model.layers) - 2):
@@ -78,7 +80,7 @@ model = copy_weights_into_model(model=model,
                                 weights=weights)
 
 model.compile(loss="mse",
-              optimizer=tf.keras.optimizers.Adam(learning_rate=0.00001),
+              optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
               metrics=["mae"])
 del weights
 
@@ -217,5 +219,5 @@ ctr = generate_heatmap(data_iter=CTR_iter,
 ctr_heatmap = np.array(ctr['heatmap']).mean(0)
 mig_heatmap = np.array(mig['heatmap']).mean(0)
 
-np.save('ctr_heatmap_small.npy', ctr_heatmap)
-np.save('mig_heatmap_small.npy', mig_heatmap)
+np.save(args.save_heatmap_path + 'ctr_heatmap_small.npy', ctr_heatmap)
+np.save(args.save_heatmap_path + 'mig_heatmap_small.npy', mig_heatmap)

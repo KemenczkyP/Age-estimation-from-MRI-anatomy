@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Apr 27 2018
-@author: KemyPeti
-
-@reference: MRegina
-"""
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -148,7 +141,9 @@ class Age_estim_CNN(object):
                                      hooks=[logging_hook_valid])
 
     def _optimizer_(self, features, labels, mode):
-        """Model function for CNN."""
+        """
+        tf estimator model function
+        """
         with tf.device('/gpu:0'):
 
             labels = labels
@@ -215,7 +210,10 @@ class Age_estim_CNN(object):
                 mode=mode, loss=loss)
 
     def input_fn(self):
-        """Input function which provides batches."""
+        """
+        train input function
+        """
+        
         dataset = tf.data.Dataset.from_tensor_slices(self._filenames_([True, False, False], self.var_TFR_DATA_DIR))
         dataset = dataset.flat_map(tf.data.TFRecordDataset)
         dataset = dataset.map(lambda value: self._record_parser_(value), num_parallel_calls=5)
@@ -231,7 +229,10 @@ class Age_estim_CNN(object):
         return {'x': images, 's': sex}, labels
 
     def input_test_fn(self):
-        """Input function which provides batches."""
+        """
+        test input function
+        """
+        
         dataset = tf.data.Dataset.from_tensor_slices(self._filenames_([False, True, False], self.var_TFR_DATA_DIR))
         dataset = dataset.flat_map(tf.data.TFRecordDataset)
         dataset = dataset.map(lambda value: self._record_parser_(value), num_parallel_calls=5)
@@ -246,7 +247,9 @@ class Age_estim_CNN(object):
         return {'x': images, 's': sex}, labels
 
     def input_valid_fn(self):
-        """Input function which provides batches."""
+        """
+        validation input function
+        """
         dataset = tf.data.Dataset.from_tensor_slices(self._filenames_([False, False, True], self.var_TFR_DATA_DIR))
         dataset = dataset.flat_map(tf.data.TFRecordDataset)
         dataset = dataset.map(lambda value: self._record_parser_(value), num_parallel_calls=5)
@@ -262,7 +265,7 @@ class Age_estim_CNN(object):
         return {'x': images, 's': sex}, labels
 
     def _filenames_(self, TRAIN_VALID_TEST, data_dir):
-        """Return filenames for dataset."""
+        
         if TRAIN_VALID_TEST[0]:
             return [
                 os.path.join(data_dir, self.var_TFRec_train_name)
@@ -279,7 +282,10 @@ class Age_estim_CNN(object):
             raise ('Each input is "False" !')
 
     def _record_parser_(self, value):
-        """Parse a TFRecord file from `value`."""
+        """
+        
+        Parse a TFRecord file from 'value'.
+        """
 
         keys_to_features = {
             'image/encoded': tf.FixedLenFeature((), tf.string, default_value=''),
