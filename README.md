@@ -1,7 +1,8 @@
 # Age-estimation-from-MRI-anatomy
 
-Python scripts for MSc Thesis [*].
-[*] P. Kemenczky, Brain age prediction based on convolutional neural networks trained on T1 weighted MRI volumes, 2019
+Python scripts for MSc Thesis [\*].
+
+[\*] P. Kemenczky, Brain age prediction based on convolutional neural networks trained on T1 weighted MRI volumes, 2019
 
 main_preprocess.py generates TFRecords files for different 3D brain MRI databases. It uses scripts in directory "preprocessing".
 
